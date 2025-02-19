@@ -13,6 +13,8 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 class Category(TimeStampedModel):
+    def __str__(self):
+        return self.name
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     description = models.TextField()
