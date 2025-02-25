@@ -21,7 +21,7 @@
 
     <h3 class="mt-4">Recent Transactions</h3>
     <div class="table-responsive">
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped" border="1">
             <thead class="table-dark">
                 <tr>
                     <th>Title</th>
@@ -37,6 +37,10 @@
                     <td>₹{{ expense.amount|floatformat:2 }}</td>
                     <td>{{ expense.category }}</td>
                     <td>{{ expense.date|date:"d M Y" }}</td>
+                    <td>
+                        <a href="{% url 'edit_expense' expense.id%}">Edit</a>
+                        <a href="{% url 'delete_expense' expense.id%}" onclick="return confirm('Are you sure')">Delete</a>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -46,7 +50,7 @@
             </tbody>
         </table>
     </div>
-
+<a href="{% url 'add_expense' %}">Add Expenses</a>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             let labels = JSON.parse('{{ category_wise_expense|safe }}').map(item => item.category);

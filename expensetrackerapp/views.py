@@ -6,6 +6,10 @@ from django.contrib.auth.views import LoginView
 from django.db.models import Sum
 from django.contrib.auth import login,logout
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Expense
+from .form import ExpenseForm
+
 
 
 class CustomLoginView(LoginView):
@@ -67,3 +71,39 @@ def dashboard(request):
 @login_required
 def dashboard(request):
     return render(request,'expensetrackerapp/dashboard.html')
+
+
+
+@login_required
+def add_expense(request):
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.user = request.user
+            expense.save()
+            messages.success(request, "Expense added successfully!")
+            return redirect('dashboard')
+    else:
+        form = ExpenseForm()
+    return render(request, 'users/add_expense.html', {'form': form})
+
+@login_required
+def edit_expense(request, expense_id):
+    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Expense updated successfully!")
+            return redirect('dashboard')
+    else:
+        form = ExpenseForm(instance=expense)
+    return render(request, 'users/edit_expense.html', {'form': form, 'expense': expense})
+
+@login_required
+def delete_expense(request, expense_id):
+    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+    expense.delete()
+    messages.success(request, "Expense deleted successfully!")
+    return redirect('dashboard')
