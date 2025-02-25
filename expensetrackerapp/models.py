@@ -26,13 +26,14 @@ class Budget(TimeStampedModel):
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     limit_amount = models.DecimalField(max_digits=10,decimal_places=2)
 
-class Expense(TimeStampedModel):
-        user = models.ForeignKey(User, on_delete=models.CASCADE)
-        Category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
-        amount = models.DecimalField(max_digits=10,decimal_places=2)
-        expense_date = models.DateTimeField(auto_now_add=True, default=timezone.now)
-        description = models.TextField(max_length=50)
+class Expense(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    date = models.DateField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.user.username} - {self.amount}"
 
 # #class Alert(TimeStampedModel):
 #     user_id  = models.Foreignkey(User, on_delete=models.CASCADE)
@@ -68,3 +69,10 @@ def __str__(self):
     
     
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='default.jpg')
+    budget_limit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

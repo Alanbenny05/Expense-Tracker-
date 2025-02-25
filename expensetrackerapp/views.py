@@ -1,3 +1,5 @@
+import csv
+from reportlab.pdfgen import canvas
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -6,7 +8,10 @@ from django.contrib.auth.views import LoginView
 from django.db.models import Sum
 from django.contrib.auth import login,logout
 from django.contrib.auth.decorators import login_required
-
+from .forms import UserUpdateForm, ProfileUpdateForm
+from django.http import HttpResponse
+from .models import Expense
+from django.utils.timezone import now
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -67,3 +72,67 @@ def dashboard(request):
 @login_required
 def dashboard(request):
     return render(request,'expensetrackerapp/dashboard.html')
+
+
+
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "Your profile has been updated!")
+            return redirect('profile')
+
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+
+    return render(request, 'users/profile.html', {'user_form': user_form, 'profile_form': profile_form})
+
+@login_required
+def export_expenses_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="expenses.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Amount', 'Description'])
+
+    expenses = Expense.objects.filter(user=request.user)
+    for expense in expenses:
+        writer.writerow([expense.date, expense.amount, expense.description])
+
+    return response
+
+
+@login_required
+def export_expenses_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="expenses_{now().date()}.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 800, f"Expense Report for {request.user.username}")
+    p.drawString(100, 780, "-------------------------------------")
+
+    expenses = Expense.objects.filter(user=request.user)
+    y = 760
+    for expense in expenses:
+        p.drawString(100, y, f"{expense.date} - {expense.amount} - {expense.description}")
+        y -= 20
+
+    p.showPage()
+    p.save()
+    return response
+
+@login_required
+def check_budget(request):
+    user_profile = request.user.profile
+    total_expenses = sum(exp.amount for exp in Expense.objects.filter(user=request.user))
+
+    if total_expenses > user_profile.budget_limit:
+        messages.warning(request, "⚠️ You have exceeded your budget limit!")
+
+    return render(request, 'expenses/dashboard.html', {'total_expenses': total_expenses})

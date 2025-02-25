@@ -44,6 +44,19 @@
                 </tr>
                 {% endfor %}
             </tbody>
+
+            <h2>Your Expenses</h2>
+            <p>Total Expenses: {{ total_expenses }}</p>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <p style="color: red;">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+            
+            <a href="{% url 'export_expenses_csv' %}">Download CSV</a>
+            <a href="{% url 'export_expenses_pdf' %}">Download PDF</a>
+            
         </table>
     </div>
 

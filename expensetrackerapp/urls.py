@@ -3,6 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views 
 from .views import CustomLoginView 
 from .views import dashboard
+from .views import profile
 
 urlpatterns = [
     path('signup/', views.signup, name='signup'),
@@ -19,4 +20,8 @@ urlpatterns = [
 ]
 urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
+]
+
+urlpatterns = [
+    path('profile/', profile, name='profile'),
 ]
