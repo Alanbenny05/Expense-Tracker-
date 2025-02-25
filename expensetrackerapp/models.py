@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 
 
 # Create your models here.
@@ -15,20 +17,20 @@ class TimeStampedModel(models.Model):
 class Category(TimeStampedModel):
     def __str__(self):
         return self.name
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)
     description = models.TextField(max_length=20)
 
 class Budget(TimeStampedModel):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     limit_amount = models.DecimalField(max_digits=10,decimal_places=2)
 
 class Expense(TimeStampedModel):
-        user_id= models.ForeignKey(User, on_delete=models.CASCADE)
+        user = models.ForeignKey(User, on_delete=models.CASCADE)
         Category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
         amount = models.DecimalField(max_digits=10,decimal_places=2)
-        expense_date = models.DateTimeField(auto_now_add=True)
+        expense_date = models.DateTimeField(auto_now_add=True, default=timezone.now)
         description = models.TextField(max_length=50)
 
 
@@ -38,5 +40,31 @@ class Expense(TimeStampedModel):
 #     related_budget_id = models.ForeignKey(Budget, on_delete=models.CASECADE)
 #     message = models.CharField()
 #     is_read = models.BooleanField()
+   
+
+class Expense(models.Model):
+    CATEGORY_CHOICES = [
+        ('Food', 'Food'),
+        ('Transport', 'Transport'),
+        ('Rent', 'Rent'),
+        ('Entertainment', 'Entertainment'),
+        ('Others', 'Others'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, default="Untitled Expense")
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='Others')
+   
+
+date = models.DateField(auto_now_add=True, default=timezone.now)
+
+   
+
+
+def __str__(self):
+        return f"{self.title} - {self.amount}"
+    
     
 
