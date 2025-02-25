@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'expensetrackerapp.apps.ExpensetrackerappConfig',
     
 ]
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+LOGIN_REDIRECT_URL = 'dashboard' #Redirect after login
+LOGOUT_REDIRECT_URL = 'login' #login
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -52,12 +56,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'expensetrackerproject.urls'
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / "templates"],
+        'APP_DIRS':True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -68,6 +74,9 @@ TEMPLATES = [
         },
     },
 ]
+
+
+
 
 WSGI_APPLICATION = 'expensetrackerproject.wsgi.application'
 

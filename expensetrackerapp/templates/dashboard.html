@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="container mt-4">
+    <div class="text-center">
+        <h2>Welcome, {{ request.user.username }}</h2>
+        <h3 class="text-primary">Total Expenses: ₹{{ total_expense|floatformat:2 }}</h3>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <h3 class="mt-4">Recent Transactions</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.title }}</td>
+                    <td>₹{{ expense.amount|floatformat:2 }}</td>
+                    <td>{{ expense.category }}</td>
+                    <td>{{ expense.date|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No transactions found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let labels = JSON.parse('{{ category_wise_expense|safe }}').map(item => item.category);
+            let data = JSON.parse('{{ category_wise_expense|safe }}').map(item => item.total);
+
+            if (data.length > 0) {
+                new Chart(document.getElementById("expenseChart"), {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Expenses by Category',
+                            data: data,
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                            ],
+                        }]
+                    }
+                });
+            } else {
+                document.getElementById("expenseChart").style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
