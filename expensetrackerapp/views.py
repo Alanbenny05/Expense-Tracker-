@@ -12,6 +12,11 @@ from .forms import UserUpdateForm, ProfileUpdateForm
 from django.http import HttpResponse
 from .models import Expense
 from django.utils.timezone import now
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Expense
+from .form import ExpenseForm
+
+
 
 class CustomLoginView(LoginView):
     template_name = 'users/login.html'
@@ -136,3 +141,36 @@ def check_budget(request):
         messages.warning(request, "⚠️ You have exceeded your budget limit!")
 
     return render(request, 'expenses/dashboard.html', {'total_expenses': total_expenses})
+
+def add_expense(request):
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.user = request.user
+            expense.save()
+            messages.success(request, "Expense added successfully!")
+            return redirect('dashboard')
+    else:
+        form = ExpenseForm()
+    return render(request, 'users/add_expense.html', {'form': form})
+
+@login_required
+def edit_expense(request, expense_id):
+    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Expense updated successfully!")
+            return redirect('dashboard')
+    else:
+        form = ExpenseForm(instance=expense)
+    return render(request, 'users/edit_expense.html', {'form': form, 'expense': expense})
+
+@login_required
+def delete_expense(request, expense_id):
+    expense = get_object_or_404(Expense, id=expense_id, user=request.user)
+    expense.delete()
+    messages.success(request, "Expense deleted successfully!")
+    return redirect('dashboard')
