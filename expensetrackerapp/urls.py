@@ -5,7 +5,7 @@ from .views import CustomLoginView
 from .views import dashboard
 from .views import profile
 from expensetrackerapp.views import export_expenses_csv, export_expenses_pdf, check_budget
-
+from .views import expense_chart
 
 urlpatterns = [
     path('signup/', views.signup, name='signup'),
@@ -43,3 +43,13 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name="users/password_reset_confirm.html"), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name="users/password_reset_complete.html"), name='password_reset_complete'),
 ]
+
+urlpatterns += [
+    path('chart/', expense_chart, name='expense_chart'),
+]
+
+urlpatterns = [
+    path('', views.some_view, name='some_view'),
+]
+
+

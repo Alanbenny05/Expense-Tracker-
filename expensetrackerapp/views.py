@@ -15,6 +15,9 @@ from django.utils.timezone import now
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Expense
 from .form import ExpenseForm
+from django.contrib.auth.decorators import login_required
+import datetime
+from .forms import RecurringExpenseForm
 
 
 
@@ -174,3 +177,23 @@ def delete_expense(request, expense_id):
     expense.delete()
     messages.success(request, "Expense deleted successfully!")
     return redirect('dashboard')
+
+@login_required
+def expense_chart(request):
+    today = datetime.date.today()
+    start_of_month = today.replace(day=1)
+
+    expenses = (
+        Expense.objects.filter(user=request.user, date__gte=start_of_month)
+        .values("date")
+        .annotate(total=Sum("amount"))
+        .order_by("date")
+    )
+
+    dates = [exp["date"].strftime("%Y-%m-%d") for exp in expenses]
+    amounts = [exp["total"] for exp in expenses]
+
+    return render(request, "expenses/chart.html", {"dates": dates, "amounts": amounts})
+
+def some_view(request):
+    return render(request, 'your_template.html')

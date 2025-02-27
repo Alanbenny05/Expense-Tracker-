@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.urls import path
-from .views import export_expenses_csv, export_expenses_pdf, check_budget
+from .views import export_expenses_csv, export_expenses_pdf, check_budget,recurring_expense_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +29,9 @@ urlpatterns = [
     path('export/csv/', export_expenses_csv, name='export_expenses_csv'),
     path('export/pdf/', export_expenses_pdf, name='export_expenses_pdf'),
     path('check_budget/', check_budget, name='check_budget'),
+]
+path('expensetrackerapp/', include('expensetrackerapp.urls')),
+
+urlpatterns += [
+    path('recurring/', recurring_expense_view, name='recurring_expense'),
 ]

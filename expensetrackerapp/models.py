@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import timedelta
+from django import forms
+from django.utils.timezone import now
+
 
 
 
@@ -30,7 +34,7 @@ class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=now)
 
     def __str__(self):
         return f"{self.user.username} - {self.amount}"
@@ -49,6 +53,7 @@ class Expense(models.Model):
         ('Transport', 'Transport'),
         ('Rent', 'Rent'),
         ('Entertainment', 'Entertainment'),
+         ('bills', 'Bills'),
         ('Others', 'Others'),
     ]
     
@@ -57,9 +62,11 @@ class Expense(models.Model):
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='Others')
-   
+    recurring = models.BooleanField(default=False)
+    recurrence_period = models.CharField(max_length=20, choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')], blank=True, null=True)
+    date = models.DateField(default=now)
 
-date = models.DateField(auto_now_add=True, default=timezone.now)
+    
 
    
 
@@ -76,3 +83,36 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+    
+    
+
+
+class RecurringExpense(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Renamed `User` to `user`
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField()
+    frequency = models.CharField(
+        max_length=10,
+        choices=[("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly")]
+    )
+    next_due_date = models.DateField(editable=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # Track when it was added
+
+    def update_next_due_date(self):
+        """Update next_due_date based on frequency"""
+        if self.frequency == "daily":
+            self.next_due_date += timedelta(days=1)
+        elif self.frequency == "weekly":
+            self.next_due_date += timedelta(weeks=1)
+        elif self.frequency == "monthly":
+            self.next_due_date += timedelta(weeks=4)  # Approximate month handling
+        self.save()
+
+    def __str__(self):
+        return f"{self.description} - {self.frequency} - Due: {self.next_due_date}"
+
+class RecurringExpenseForm(forms.ModelForm):
+    class Meta:
+        model = RecurringExpense
+        fields = ["amount", "description", "frequency"]  # Remove "next_due_date"
+
